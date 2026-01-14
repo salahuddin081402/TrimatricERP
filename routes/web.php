@@ -3,11 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
+  Route::get('/', function () {
+       return redirect()->route('backend.company.dashboard.public', ['company' => 'trimatric-global']);
+    });
+    
 Route::get('/health', fn() => response('ok', 200));
 Route::get('/dbcheck', fn() => DB::select('select 1 as ok'));
 
@@ -33,6 +32,8 @@ Route::prefix('backend/company/{company}')
 
     Route::get('/reset-password', [AuthController::class, 'showReset'])->name('resetPassword');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('resetPassword.submit');
+
+  
 
     // Route::get('/dashboard/public', function () {
     //     return view('dashboard');
