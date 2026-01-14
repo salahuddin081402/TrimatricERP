@@ -69,7 +69,7 @@
             <div>
                 <h4 class="mb-1">Batch Email &amp; SMS Delivery</h4>
                 <div class="bd-tiny">
-                    Sends run in background via queue worker. UI stays responsive. Use History to find any batch later.
+                    Sends run in background via queue worker.  UI stays responsive. Use History to find any batch later.
                 </div>
             </div>
             <div class="d-flex gap-2">
