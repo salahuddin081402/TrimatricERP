@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('Registration_OTP', function (Blueprint $table) {
+        Schema::create('registration_otp', function (Blueprint $table) {
             $table->engine  = 'InnoDB';
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
@@ -33,31 +33,31 @@ return new class extends Migration {
                   ->references('id')->on('companies')
                   ->onDelete('cascade');
 
-            // Composite FK to Company_Reg_Keys
+            // Composite FK to company_reg_keys
             $table->foreign(['Company_Id', 'reg_key'], 'fk_rotp_company_reg_key')
                   ->references(['Company_id', 'reg_key'])
-                  ->on('Company_Reg_Keys')
+                  ->on('company_reg_keys')
                   ->onDelete('cascade');
         });
 
         // Add generated column + unique constraint (status_active)
         DB::statement("
-            ALTER TABLE `Registration_OTP`
+            ALTER TABLE `registration_otp`
             ADD COLUMN `status_active` TINYINT(1)
             GENERATED ALWAYS AS (IF(`status` = 1, 1, NULL)) STORED
             COMMENT 'Generated: 1 when active; NULL otherwise (for unique-on-active constraint)'
             AFTER `status`
         ");
         DB::statement("
-            ALTER TABLE `Registration_OTP`
+            ALTER TABLE `registration_otp`
             ADD UNIQUE KEY `uq_rotp_one_active` (`Company_Id`, `reg_key`, `phone`, `status_active`)
         ");
     }
 
     public function down(): void {
         // Drop unique first, then generated column, then table
-        DB::statement("ALTER TABLE `Registration_OTP` DROP INDEX `uq_rotp_one_active`");
-        DB::statement("ALTER TABLE `Registration_OTP` DROP COLUMN `status_active`");
-        Schema::dropIfExists('Registration_OTP');
+        DB::statement("ALTER TABLE `registration_otp` DROP INDEX `uq_rotp_one_active`");
+        DB::statement("ALTER TABLE `registration_otp` DROP COLUMN `status_active`");
+        Schema::dropIfExists('registration_otp');
     }
 };

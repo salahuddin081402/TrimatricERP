@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('Expertise_on_Softwares', function (Blueprint $table) {
+        Schema::create('expertise_on_softwares', function (Blueprint $table) {
             $table->engine  = 'InnoDB';
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('Company_id');
             $table->unsignedBigInteger('registration_id');
-            $table->unsignedBigInteger('expert_on_software'); // FK Software_List.id
+            $table->unsignedBigInteger('expert_on_software'); // FK software_list.id
             $table->decimal('experience_in_years', 4, 1)->default(0.0);
 
             $table->tinyInteger('status')->default(1);
@@ -36,12 +36,12 @@ return new class extends Migration {
                   ->onDelete('cascade');
 
             $table->foreign('expert_on_software', 'fk_eos_software')
-                  ->references('id')->on('Software_List')
+                  ->references('id')->on('software_list')
                   ->onDelete('restrict');
         });
     }
 
     public function down(): void {
-        Schema::dropIfExists('Expertise_on_Softwares');
+        Schema::dropIfExists('expertise_on_softwares');
     }
 };
