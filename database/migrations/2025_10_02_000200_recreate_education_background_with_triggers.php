@@ -12,17 +12,43 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Safely drop existing table & triggers if present
+        // --------------------------------------------
+        // 1) Clean up any legacy table / FKs / triggers
+        //    (handles both `Education_Background` and `education_background`)
+        // --------------------------------------------
         Schema::disableForeignKeyConstraints();
 
-        DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bi");
-        DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bu");
+        // Drop triggers if they exist (only one set per schema)
+        try {
+            DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bi");
+        } catch (\Throwable $e) {}
 
+        try {
+            DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bu");
+        } catch (\Throwable $e) {}
+
+        // Best-effort FK cleanup on both possible table names
+        foreach (['education_background', 'Education_Background'] as $tbl) {
+            try {
+                DB::statement("ALTER TABLE `$tbl` DROP FOREIGN KEY `fk_eb_company`");
+            } catch (\Throwable $e) {}
+            try {
+                DB::statement("ALTER TABLE `$tbl` DROP FOREIGN KEY `fk_eb_registration`");
+            } catch (\Throwable $e) {}
+            try {
+                DB::statement("ALTER TABLE `$tbl` DROP FOREIGN KEY `fk_eb_degree`");
+            } catch (\Throwable $e) {}
+        }
+
+        // Drop both case variants of the table (no error if missing)
         Schema::dropIfExists('education_background');
+        Schema::dropIfExists('Education_Background');
 
         Schema::enableForeignKeyConstraints();
 
-        // Re-create table with clean schema + proper FKs
+        // --------------------------------------------
+        // 2) Re-create table with clean schema + proper FKs
+        // --------------------------------------------
         Schema::create('education_background', function (Blueprint $table) {
             $table->id();
 
@@ -56,7 +82,7 @@ return new class extends Migration
             $table->index('Result_Type', 'idx_eb_result_type');
             $table->index('status', 'idx_eb_status');
 
-            // FKs (adjust table names if yours differ)
+            // FKs
             $table->foreign('Company_id', 'fk_eb_company')
                 ->references('id')->on('companies')
                 ->cascadeOnDelete()
@@ -73,7 +99,9 @@ return new class extends Migration
                 ->cascadeOnUpdate();
         });
 
-        // Create triggers (no DELIMITER needed via DB::unprepared)
+        // --------------------------------------------
+        // 3) Recreate triggers (no DELIMITER needed)
+        // --------------------------------------------
         DB::unprepared("
             CREATE TRIGGER trg_eb_year_not_future_bi
             BEFORE INSERT ON education_background
@@ -102,10 +130,17 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop triggers first, then table
-        DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bi");
-        DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bu");
+        // Drop triggers first (if present)
+        try {
+            DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bi");
+        } catch (\Throwable $e) {}
 
+        try {
+            DB::unprepared("DROP TRIGGER IF EXISTS trg_eb_year_not_future_bu");
+        } catch (\Throwable $e) {}
+
+        // Drop table (both variants, to be safe)
         Schema::dropIfExists('education_background');
+        Schema::dropIfExists('Education_Background');
     }
 };

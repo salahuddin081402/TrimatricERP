@@ -41,3 +41,21 @@ Route::middleware(['web']) // add 'auth' later
                 //     ->name('autosave.state');
             });
     });
+
+
+/* ============================================================
+ | API: Client Interior Requisition (Company Scoped – TomSelect)
+ |============================================================ */
+
+Route::get('/{company}/requisitions/api/categories',
+    [InteriorRequisitionController::class, 'apiCategories']
+)->name('backend.interior.requisitions.api.categories');
+
+Route::get('/{company}/requisitions/api/subcategories',
+    [InteriorRequisitionController::class, 'apiSubcategories']
+)->name('backend.interior.requisitions.api.subcategories');
+
+Route::get('/{company}/requisitions/api/products',
+    [InteriorRequisitionController::class, 'apiProducts']
+)->name('backend.interior.requisitions.api.products');
+

@@ -1,30 +1,54 @@
 {{-- resources/views/backend/layouts/master.blade.php --}}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  @include('backend.layouts.partials.head')   {{-- Bootstrap 5, Font Awesome, Tom Select + @stack('styles') --}}
+    @include('backend.layouts.partials.head')
+    {{-- IMPORTANT: sticky-header CSS --}}
+    <style>
+        /* Make HEADER sticky (sits above everything) */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2000; /* above sidebar (1050), dropdowns, sliders */
+            background: inherit; /* keeps your gray theme */
+        }
+
+        /* Prevent content from sliding under sticky header */
+        .content-wrapper {
+            padding-top: 20px !important;
+        }
+
+        /* Keep sidebar from overlapping header on mobile */
+        .main-sidebar {
+            z-index: 1500 !important;
+        }
+    </style>
 </head>
+
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-  @include('backend.layouts.partials.header')   {{-- logo, search, contact/about/complain, registration link --}}
-  @include('backend.layouts.partials.sidebar')  {{-- dynamic role-based menu --}}
+    {{-- Sticky Header --}}
+    @include('backend.layouts.partials.header')
 
-  <main class="content-wrapper">
-    @include('backend.layouts.partials.alerts') {{-- toasts/flash --}}
-    @yield('content')
-  </main>
+    {{-- Sidebar (unchanged) --}}
+    @include('backend.layouts.partials.sidebar')
 
-  @include('backend.layouts.partials.footer')
+    {{-- Main Content --}}
+    <main class="content-wrapper">
+        @include('backend.layouts.partials.alerts')
+        @yield('content')
+    </main>
 
-  {{-- Optional control sidebar if ever needed in future. --}}
-  {{-- <aside class="control-sidebar control-sidebar-dark"></aside> --}}
+    {{-- Footer --}}
+    @include('backend.layouts.partials.footer')
 
 </div>
 
-{{-- Global image zoom modal (body-level so it overlays entire app) --}}
+{{-- Global Image Zoom Modal --}}
 @include('backend.layouts.partials.zoom-modal')
 
-@include('backend.layouts.partials.scripts')     {{-- jQuery, Bootstrap bundle, Tom Select + @stack('scripts') --}}
+@include('backend.layouts.partials.scripts')
 </body>
 </html>
