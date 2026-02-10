@@ -14,7 +14,7 @@ return new class extends Migration
     {
         // --------------------------------------------
         // 1) Clean up any legacy table / FKs / triggers
-        //    (handles both `Education_Background` and `education_background`)
+        //    (handles both `education_background` and `education_background`)
         // --------------------------------------------
         Schema::disableForeignKeyConstraints();
 
@@ -28,7 +28,7 @@ return new class extends Migration
         } catch (\Throwable $e) {}
 
         // Best-effort FK cleanup on both possible table names
-        foreach (['education_background', 'Education_Background'] as $tbl) {
+        foreach (['education_background', 'education_background'] as $tbl) {
             try {
                 DB::statement("ALTER TABLE `$tbl` DROP FOREIGN KEY `fk_eb_company`");
             } catch (\Throwable $e) {}
@@ -42,7 +42,7 @@ return new class extends Migration
 
         // Drop both case variants of the table (no error if missing)
         Schema::dropIfExists('education_background');
-        Schema::dropIfExists('Education_Background');
+        Schema::dropIfExists('education_background');
 
         Schema::enableForeignKeyConstraints();
 
@@ -141,6 +141,6 @@ return new class extends Migration
 
         // Drop table (both variants, to be safe)
         Schema::dropIfExists('education_background');
-        Schema::dropIfExists('Education_Background');
+        Schema::dropIfExists('education_background');
     }
 };

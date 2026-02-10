@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('Company_Reg_Keys', function (Blueprint $table) {
+        Schema::create('company_reg_keys', function (Blueprint $table) {
             $table->engine = 'InnoDB';
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
@@ -30,6 +30,6 @@ return new class extends Migration {
     }
 
     public function down(): void {
-        Schema::dropIfExists('Company_Reg_Keys');
+        Schema::dropIfExists('company_reg_keys');
     }
 };

@@ -20,12 +20,12 @@ return new class extends Migration {
             Schema::table('registration_master', function (Blueprint $table) {
                 $table->foreign(['company_id', 'reg_key'], 'fk_reg_company_regkey')
                       ->references(['Company_id', 'reg_key'])
-                      ->on('Company_Reg_Keys')
+                      ->on('company_reg_keys')
                       ->onDelete('restrict'); // <-- fixed here
             });
         }
 
-        // 2) Add FK to Professions if missing
+        // 2) Add FK to professions if missing
         $fkProfExists = DB::selectOne("
             SELECT CONSTRAINT_NAME
             FROM information_schema.REFERENTIAL_CONSTRAINTS
@@ -35,7 +35,7 @@ return new class extends Migration {
         if (!$fkProfExists) {
             Schema::table('registration_master', function (Blueprint $table) {
                 $table->foreign('Profession', 'fk_reg_profession')
-                      ->references('id')->on('Professions')
+                      ->references('id')->on('professions')
                       ->onDelete('set null');
             });
         }

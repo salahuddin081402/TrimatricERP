@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('Education_Background', function (Blueprint $table) {
+        Schema::create('education_background', function (Blueprint $table) {
             // Engine / charset
             $table->engine = 'InnoDB';
             $table->charset = 'utf8mb4';
@@ -60,11 +60,11 @@ return new class extends Migration {
         });
 
         // Convert Passing_Year to YEAR type
-        DB::statement("ALTER TABLE `Education_Background` MODIFY `Passing_Year` YEAR NOT NULL");
+        DB::statement("ALTER TABLE `education_background` MODIFY `Passing_Year` YEAR NOT NULL");
 
         // CHECK for grade/score format and Out_of rules (OK: no non-deterministic functions)
         DB::statement("
-            ALTER TABLE `Education_Background`
+            ALTER TABLE `education_background`
             ADD CONSTRAINT `chk_eb_grade_or_score`
             CHECK (
                 (
@@ -86,7 +86,7 @@ return new class extends Migration {
         DB::unprepared("
             DROP TRIGGER IF EXISTS trg_eb_year_not_future_bi;
             CREATE TRIGGER trg_eb_year_not_future_bi
-            BEFORE INSERT ON Education_Background
+            BEFORE INSERT ON education_background
             FOR EACH ROW
             BEGIN
                 IF NEW.Passing_Year > YEAR(CURDATE()) THEN
@@ -98,7 +98,7 @@ return new class extends Migration {
         DB::unprepared("
             DROP TRIGGER IF EXISTS trg_eb_year_not_future_bu;
             CREATE TRIGGER trg_eb_year_not_future_bu
-            BEFORE UPDATE ON Education_Background
+            BEFORE UPDATE ON education_background
             FOR EACH ROW
             BEGIN
                 IF NEW.Passing_Year > YEAR(CURDATE()) THEN
@@ -115,8 +115,8 @@ return new class extends Migration {
         try { DB::unprepared('DROP TRIGGER IF EXISTS trg_eb_year_not_future_bi'); } catch (\Throwable $e) {}
 
         // Drop CHECK (older MySQL may not name it; ignore if missing)
-        try { DB::statement("ALTER TABLE `Education_Background` DROP CHECK `chk_eb_grade_or_score`"); } catch (\Throwable $e) {}
+        try { DB::statement("ALTER TABLE `education_background` DROP CHECK `chk_eb_grade_or_score`"); } catch (\Throwable $e) {}
 
-        Schema::dropIfExists('Education_Background');
+        Schema::dropIfExists('education_background');
     }
 };

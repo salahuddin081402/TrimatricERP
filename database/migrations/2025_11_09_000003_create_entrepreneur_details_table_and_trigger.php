@@ -18,7 +18,7 @@ return new class extends Migration
 
             $table->tinyInteger('do_you_have_business')->default(0);
 
-            $table->unsignedInteger('business_type_id')->nullable();   // Business_Types.business_type_id
+            $table->unsignedInteger('business_type_id')->nullable();   // business_types.business_type_id
             $table->string('Company_name', 150)->nullable();
             // YEAR added via raw SQL after create
             $table->string('Company_address', 255)->nullable();
@@ -35,7 +35,7 @@ return new class extends Migration
             ])->nullable();
 
             $table->string('ID_Card_No', 20)->nullable();
-            $table->unsignedInteger('ID_Card_Type_id')->nullable();    // ID_Card_Types.ID_Card_Type_id
+            $table->unsignedInteger('ID_Card_Type_id')->nullable();    // id_card_types.ID_Card_Type_id
             $table->date('ID_Card_delivery_date')->nullable();
             $table->tinyInteger('ID_Card_delivery_status')->default(0); // 0=Applied,1=Processing,2=Delivered
 
@@ -52,11 +52,11 @@ return new class extends Migration
 
             // FKs
             $table->foreign('business_type_id', 'fk_ent_business_type')
-                ->references('business_type_id')->on('Business_Types')
+                ->references('business_type_id')->on('business_types')
                 ->restrictOnDelete()->restrictOnUpdate();
 
             $table->foreign('ID_Card_Type_id', 'fk_ent_id_card_type')
-                ->references('ID_Card_Type_id')->on('ID_Card_Types')
+                ->references('ID_Card_Type_id')->on('id_card_types')
                 ->restrictOnDelete()->restrictOnUpdate();
 
             $table->foreign('company_id', 'fk_ent_company')

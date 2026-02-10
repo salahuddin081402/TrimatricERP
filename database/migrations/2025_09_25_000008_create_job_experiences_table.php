@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('Job_Experiences', function (Blueprint $table) {
+        Schema::create('job_experiences', function (Blueprint $table) {
             $table->engine  = 'InnoDB';
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
@@ -42,6 +42,6 @@ return new class extends Migration {
     }
 
     public function down(): void {
-        Schema::dropIfExists('Job_Experiences');
+        Schema::dropIfExists('job_experiences');
     }
 };

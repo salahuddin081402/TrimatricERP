@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('ID_Card_Types', function (Blueprint $table) {
+        Schema::create('id_card_types', function (Blueprint $table) {
             $table->unsignedInteger('ID_Card_Type_id', true);
             $table->string('ID_Card_Type_name', 100);
             $table->tinyInteger('status')->default(1);
@@ -18,7 +18,7 @@ return new class extends Migration
 
         // CHECK (status IN (0,1))
         DB::statement("
-            ALTER TABLE `ID_Card_Types`
+            ALTER TABLE `id_card_types`
             ADD CONSTRAINT `chk_id_card_types_status`
             CHECK (`status` IN (0,1))
         ");
@@ -26,6 +26,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('ID_Card_Types');
+        Schema::dropIfExists('id_card_types');
     }
 };
