@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('Tasks_Param', function (Blueprint $table) {
+        Schema::create('tasks_param', function (Blueprint $table) {
             $table->engine = 'InnoDB';
             $table->charset = 'utf8mb4';
             $table->collation = 'utf8mb4_unicode_ci';
@@ -30,6 +30,6 @@ return new class extends Migration {
     }
 
     public function down(): void {
-        Schema::dropIfExists('Tasks_Param');
+        Schema::dropIfExists('tasks_param');
     }
 };

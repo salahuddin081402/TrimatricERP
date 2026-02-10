@@ -33,7 +33,7 @@ return new class extends Migration {
                   ->onDelete('cascade');
 
             $table->foreign('Task_Param_ID', 'fk_paj_taskparam')
-                  ->references('Task_Param_ID')->on('Tasks_Param')
+                  ->references('Task_Param_ID')->on('tasks_param')
                   ->onDelete('restrict');
         });
     }
