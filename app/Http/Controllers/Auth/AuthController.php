@@ -178,6 +178,8 @@ class AuthController extends Controller
         return view('auth.signup');
     }
 
+
+    /* old signup() 
     public function signup(Request $request)
     {
         $request->validate([
@@ -209,6 +211,64 @@ class AuthController extends Controller
         return redirect()->route('company.otp', ['company' => $slug]);
     }
 
+    */
+
+    public function signup(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|unique:users,phone',
+            'email' => 'nullable|email|unique:users,email',
+            'password' => [
+                'required',
+                'confirmed',
+                'min:8',
+                'regex:/[A-Z]/',           // at least one uppercase
+                'regex:/[a-z]/',           // at least one lowercase
+                'regex:/[0-9]/',           // at least one digit
+                'regex:/[^A-Za-z0-9]/',    // at least one non-alphanumeric (any symbol, e.g. _ @ # $ % etc.)
+                'regex:/^\S+$/',           // no whitespace
+          ],
+        ]);
+
+        $slug = $request->route('company');
+        $company = Company::where('slug', $slug)->firstOrFail();
+
+        // Extra defensive guard: if either phone OR email already exist, DO NOT send OTP
+        $existing = User::query()
+            ->where('phone', $request->phone);
+
+        if ($request->filled('email')) {
+            $existing->orWhere('email', $request->email);
+        }
+
+        if ($existing->exists()) {
+            return back()
+                ->withErrors([
+                    'phone' => 'This phone number or email is already registered.',
+                ])
+                ->withInput();
+        }
+
+        session([
+            'signup_data' => [
+                'name'       => $request->name,
+                'phone'      => $request->phone,
+                'email'      => $request->email,
+                'password'   => Hash::make($request->password),
+                'company_id' => $company->id,
+                'role_id'    => 10,
+            ],
+        ]);
+
+        $this->generateOtp($request->phone, $request->email, $company);
+
+        return redirect()->route('company.otp', ['company' => $slug]);
+    }
+
+
+
+
     public function showForgot() {
         return view('auth.forgot');
     }
@@ -232,23 +292,29 @@ class AuthController extends Controller
         return view('auth.reset');
     }
 
-    public function resetPassword(Request $request)
-    {
-        $request->validate([
-            'password' => [
-                'required','confirmed','min:8',
-                'regex:/[A-Z]/','regex:/[a-z]/','regex:/[0-9]/','regex:/[@$!%*#?&]/'
-            ]
-        ]);
+public function resetPassword(Request $request)
+{
+    $request->validate([
+        'password' => [
+            'required',
+            'confirmed',
+            'min:8',
+            'regex:/[A-Z]/',           // at least one uppercase
+            'regex:/[a-z]/',           // at least one lowercase
+            'regex:/[0-9]/',           // at least one digit
+            'regex:/[^A-Za-z0-9]/',    // at least one non-alphanumeric (any symbol)
+            'regex:/^\S+$/',           // no whitespace
+        ],
+    ]);
 
-        $user = User::find(session('forgot_password_user_id'));
-        $user->update(['password' => Hash::make($request->password)]);
+    $user = User::find(session('forgot_password_user_id'));
+    $user->update(['password' => Hash::make($request->password)]);
 
-        Auth::login($user);
-        session()->forget(['forgot_password_user_id']);
+    Auth::login($user);
+    session()->forget(['forgot_password_user_id']);
 
-        return redirect('backend/company/'.request()->company.'/dashboard/public');
-    }
+    return redirect('backend/company/' . request()->company . '/dashboard/public');
+}
 
     public function googleRedirect(Request $request)
     {

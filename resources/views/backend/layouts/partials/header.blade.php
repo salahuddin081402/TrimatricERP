@@ -281,7 +281,7 @@
                 {{-- Left: Static top links (placeholders; you will set routes later) --}}
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-2">
                     <li class="nav-item">
-                        <a class="nav-link tmx-navlink" href="#" data-route-placeholder="home">Home</a>
+                        <a class="nav-link tmx-navlink" href="{{ $brandHref }}" data-route-placeholder="home">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link tmx-navlink" href="#" data-route-placeholder="about">About Us</a>
@@ -383,7 +383,7 @@
                         @if(!empty($ui->loginVisible))
                             @if(!empty($ui->loginEnabled))
                                 <li class="nav-item">
-                                    <a class="btn btn-sm tmx-btn tmx-btn-dark px-3" href="{{ $loginUrl }}">
+                                    <a id="login-btn" class="btn btn-sm tmx-btn tmx-btn-dark px-3" href="{{ $loginUrl }}">
                                         <i class="fa-solid fa-right-to-bracket me-1"></i> Login
                                     </a>
                                 </li>

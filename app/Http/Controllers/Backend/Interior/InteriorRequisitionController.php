@@ -436,12 +436,28 @@ class InteriorRequisitionController extends Controller
         //   "project_type_id": 1,
         //   "project_subtype_id": 10,
         //   "spaces": {
-        //      "12": { "qty": 1, "sqft": 120.5, "categories": { "5": { "subcategories": { "9": { "products": { "101": 2 } } } } } }
+        //      "12": {
+        //          "qty": 1,
+        //          "sqft": 120.5,
+        //          "categories": {
+        //              "CAT_ID": {
+        //                  "subcategories": {
+        //                      "SUBCAT_ID": {
+        //                          "products": {
+        //                              "PRODUCT_ID": QTY
+        //                          }
+        //                      }
+        //                  }
+        //              }
+        //          }
+        //      }
         //   }
         // }
 
         $spaces = $state['spaces'] ?? [];
-        if (!is_array($spaces)) $spaces = [];
+        if (!is_array($spaces)) {
+            $spaces = [];
+        }
 
         // SPACE LINES: delete+insert (lines are immutable in DB)
         DB::table('interior_requisition_space_lines')
@@ -452,22 +468,26 @@ class InteriorRequisitionController extends Controller
         $spaceRows = [];
         foreach ($spaces as $spaceId => $s) {
             $spaceId = (int) $spaceId;
-            if ($spaceId <= 0) continue;
+            if ($spaceId <= 0) {
+                continue;
+            }
 
             $qty = (int) ($s['qty'] ?? 1);
-            if ($qty < 1) $qty = 1;
+            if ($qty < 1) {
+                $qty = 1;
+            }
 
             $sqft = (float) ($s['sqft'] ?? 0);
 
             $spaceRows[] = [
-                'company_id' => $companyId,
-                'requisition_id' => $requisitionId,
-                'space_id' => $spaceId,
-                'space_qty' => $qty,
-                'space_total_sqft' => $sqft,
-                'sort_order' => 0,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'company_id'        => $companyId,
+                'requisition_id'    => $requisitionId,
+                'space_id'          => $spaceId,
+                'space_qty'         => $qty,
+                'space_total_sqft'  => $sqft,
+                'sort_order'        => 0,
+                'created_at'        => now(),
+                'updated_at'        => now(),
             ];
         }
 
@@ -491,78 +511,118 @@ class InteriorRequisitionController extends Controller
             ->where('requisition_id', $requisitionId)
             ->delete();
 
-        $catRows = [];
+        $catRows    = [];
         $subcatRows = [];
-        $prodRows = [];
+        $prodRows   = [];
 
         foreach ($spaces as $spaceId => $s) {
             $spaceId = (int) $spaceId;
-            if ($spaceId <= 0) continue;
+            if ($spaceId <= 0) {
+                continue;
+            }
 
             $categories = $s['categories'] ?? [];
-            if (!is_array($categories)) $categories = [];
+            if (!is_array($categories)) {
+                $categories = [];
+            }
 
             foreach ($categories as $catId => $c) {
                 $catId = (int) $catId;
-                if ($catId <= 0) continue;
+                if ($catId <= 0) {
+                    continue;
+                }
 
-                $catRows[] = [
-                    'company_id' => $companyId,
-                    'requisition_id' => $requisitionId,
-                    'space_id' => $spaceId,
-                    'category_id' => $catId,
-                    'sort_order' => 0,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+                $hasValidSubcategory = false;
 
                 $subcats = $c['subcategories'] ?? [];
-                if (!is_array($subcats)) $subcats = [];
+                if (!is_array($subcats)) {
+                    $subcats = [];
+                }
 
                 foreach ($subcats as $subcatId => $sc) {
                     $subcatId = (int) $subcatId;
-                    if ($subcatId <= 0) continue;
-
-                    $subcatRows[] = [
-                        'company_id' => $companyId,
-                        'requisition_id' => $requisitionId,
-                        'space_id' => $spaceId,
-                        'category_id' => $catId,
-                        'subcategory_id' => $subcatId,
-                        'sort_order' => 0,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
+                    if ($subcatId <= 0) {
+                        continue;
+                    }
 
                     $products = $sc['products'] ?? [];
-                    if (!is_array($products)) $products = [];
+                    if (!is_array($products)) {
+                        $products = [];
+                    }
+
+                    $validProducts = [];
 
                     foreach ($products as $productId => $qty) {
                         $productId = (int) $productId;
-                        if ($productId <= 0) continue;
+                        $q         = (int) $qty;
 
-                        $q = (int) $qty;
-                        if ($q < 1) $q = 1;
+                        // PRODUCT VALIDATION:
+                        // - must have a valid product id
+                        // - must have qty > 0
+                        if ($productId <= 0 || $q <= 0) {
+                            continue;
+                        }
 
+                        $validProducts[$productId] = $q;
+                    }
+
+                    // RULE: subcategory row is valid ONLY if it has at least one product with qty > 0
+                    if (empty($validProducts)) {
+                        continue;
+                    }
+
+                    $hasValidSubcategory = true;
+
+                    $subcatRows[] = [
+                        'company_id'     => $companyId,
+                        'requisition_id' => $requisitionId,
+                        'space_id'       => $spaceId,
+                        'category_id'    => $catId,
+                        'subcategory_id' => $subcatId,
+                        'sort_order'     => 0,
+                        'created_at'     => now(),
+                        'updated_at'     => now(),
+                    ];
+
+                    foreach ($validProducts as $productId => $q) {
                         $prodRows[] = [
-                            'company_id' => $companyId,
+                            'company_id'     => $companyId,
                             'requisition_id' => $requisitionId,
-                            'space_id' => $spaceId,
-                            'category_id' => $catId,
+                            'space_id'       => $spaceId,
+                            'category_id'    => $catId,
                             'subcategory_id' => $subcatId,
-                            'product_id' => $productId,
-                            'qty' => $q,
-                            'created_at' => now(),
-                            'updated_at' => now(),
+                            'product_id'     => $productId,
+                            'qty'            => $q,
+                            'created_at'     => now(),
+                            'updated_at'     => now(),
                         ];
                     }
+                }
+
+                // RULE: category row is valid ONLY if it has at least one valid subcategory
+                if ($hasValidSubcategory) {
+                    $catRows[] = [
+                        'company_id'     => $companyId,
+                        'requisition_id' => $requisitionId,
+                        'space_id'       => $spaceId,
+                        'category_id'    => $catId,
+                        'sort_order'     => 0,
+                        'created_at'     => now(),
+                        'updated_at'     => now(),
+                    ];
                 }
             }
         }
 
-        if (!empty($catRows)) DB::table('interior_requisition_category_lines')->insert($catRows);
-        if (!empty($subcatRows)) DB::table('interior_requisition_subcategory_lines')->insert($subcatRows);
-        if (!empty($prodRows)) DB::table('interior_requisition_product_lines')->insert($prodRows);
+        if (!empty($catRows)) {
+            DB::table('interior_requisition_category_lines')->insert($catRows);
+        }
+        if (!empty($subcatRows)) {
+            DB::table('interior_requisition_subcategory_lines')->insert($subcatRows);
+        }
+        if (!empty($prodRows)) {
+            DB::table('interior_requisition_product_lines')->insert($prodRows);
+        }
     }
 
     /* ============================================================
@@ -1214,4 +1274,86 @@ class InteriorRequisitionController extends Controller
 
         return response()->json(['ok' => true]);
     }
+
+    /* ============================================================
+       API: TomSelect – Categories by Space (Company Scoped)
+       ============================================================ */
+    public function apiCategories(Request $request, $company)
+    {
+        $companyRow = $this->resolveCompany($company);
+        abort_if(!$companyRow, 404, 'Company not found');
+
+        $spaceId = $request->query('space_id');
+        abort_if(!$spaceId, 422, 'space_id is required');
+
+        $rows = DB::table('cr_space_category_mappings as m')
+            ->join('cr_item_categories as c', 'c.id', '=', 'm.category_id')
+            ->where('m.space_id', $spaceId)
+            ->where(function ($q) use ($companyRow) {
+                $q->whereNull('c.company_id')
+                  ->orWhere('c.company_id', $companyRow->id);
+            })
+            ->where('c.is_active', 1)
+            ->orderBy('c.sort_order')
+            ->select('c.id', 'c.name')
+            ->get();
+
+        return response()->json($rows);
+    }
+
+    /* ============================================================
+       API: TomSelect – Subcategories by Category (Company Scoped)
+       ============================================================ */
+    public function apiSubcategories(Request $request, $company)
+    {
+        $companyRow = $this->resolveCompany($company);
+        abort_if(!$companyRow, 404, 'Company not found');
+
+        $categoryId = $request->query('category_id');
+        abort_if(!$categoryId, 422, 'category_id is required');
+
+        $rows = DB::table('cr_item_subcategories')
+            ->where('category_id', $categoryId)
+            ->where(function ($q) use ($companyRow) {
+                $q->whereNull('company_id')
+                  ->orWhere('company_id', $companyRow->id);
+            })
+            ->where('is_active', 1)
+            ->orderBy('sort_order')
+            ->select('id', 'name')
+            ->get();
+
+        return response()->json($rows);
+    }
+
+    /* ============================================================
+       API: Products by Subcategory (Company Scoped)
+       ============================================================ */
+    public function apiProducts(Request $request, $company)
+    {
+        $companyRow = $this->resolveCompany($company);
+        abort_if(!$companyRow, 404, 'Company not found');
+
+        $subcategoryId = $request->query('subcategory_id');
+        abort_if(!$subcategoryId, 422, 'subcategory_id is required');
+
+        $rows = DB::table('cr_products')
+            ->where('subcategory_id', $subcategoryId)
+            ->where(function ($q) use ($companyRow) {
+                $q->whereNull('company_id')
+                  ->orWhere('company_id', $companyRow->id);
+            })
+            ->where('is_active', 1)
+            ->orderBy('sort_order')
+            ->select(
+                'id',
+                'name',
+                'short_description',
+                'main_image_url as card_image_path'
+            )
+            ->get();
+
+        return response()->json($rows);
+    }
+
 }

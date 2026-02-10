@@ -224,12 +224,25 @@ class DashboardController extends Controller
         }
 
         // Registration must be approved to enter index
+        /*  Old Code 
         $reg = $this->regState($uid, $userCompanyId);
         if (!$reg['approved']) {
             return $userCompanySlug
                 ? redirect()->route('backend.company.dashboard.public', ['company' => $userCompanySlug])
                 : redirect()->route('backend.dashboard.public');
         }
+         */
+
+        // Registration must be explicitly approved (approval_status = 'approved') to enter index
+        $reg = $this->regState($uid, $userCompanyId);
+
+        if (!$reg['approved']) {
+            return $userCompanySlug
+                ? redirect()->route('backend.company.dashboard.public', ['company' => $userCompanySlug])
+                : redirect()->route('backend.dashboard.public');
+        }
+
+
 
         // Determine role type view
         $role = DB::table('roles')->where('id', $user->role_id)->first();
@@ -242,6 +255,7 @@ class DashboardController extends Controller
             ? strtolower(str_replace([' ', '_'], ['-', '-'], $roleType))
             : 'guest';
 
+        
         // Role-type → view map
         $map = [
             'super-admin'      => 'backend.dashboard.super-admin.index',
@@ -254,12 +268,14 @@ class DashboardController extends Controller
             'guest'            => 'backend.dashboard.public',
         ];
 
-        $view = $map[$key] ?? $map['guest'];
+       $view = $map[$key] ?? $map['guest'];
 
         // Safety: if somehow guest view while approved, send to super-admin page
         if ($view === 'backend.dashboard.public') {
             $view = 'backend.dashboard.super-admin.index';
+
         }
+
 
         return view($view, [
             'title'    => 'Dashboard',
